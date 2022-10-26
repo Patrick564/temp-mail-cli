@@ -8,32 +8,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	menuStyle = lipgloss.NewStyle().
-			Margin(2, 3).
-			Width(45).
-			Align(lipgloss.Center, lipgloss.Center).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground()
-	inboxStyle = lipgloss.NewStyle().
-			Margin(2, 3).
-			MaxHeight(40).
-			MaxWidth(96).
-			Align(lipgloss.Center, lipgloss.Center)
-	selectedStyle = lipgloss.NewStyle().
-			MarginTop(3).
-			MarginLeft(20).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#7D56F4"))
-	noSelectedStyle = lipgloss.NewStyle().
-			MarginTop(3).
-			MarginLeft(20).
-			BorderStyle(lipgloss.HiddenBorder())
-	helpStyle = lipgloss.NewStyle().
-			MarginTop(5).
-			MarginLeft(20).
-			Foreground(lipgloss.Color("241"))
-)
+var helpStyle = lipgloss.NewStyle().
+	MarginTop(5).
+	MarginLeft(20).
+	Foreground(lipgloss.Color("241"))
 
 const (
 	menuView sessionState = iota
@@ -76,27 +54,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	var sm string
+	var s string
 
-	menuRender := menuStyle.Render(m.menu.View())
-	inboxRender := inboxStyle.Render(m.inbox.View())
+	selected := lipgloss.Color("#7D56F4")
+	noSelected := lipgloss.Color("240")
 
-	if m.state == menuView {
-		sm += lipgloss.JoinHorizontal(
+	view := func(state bool) string {
+		if state {
+			return lipgloss.JoinHorizontal(
+				lipgloss.Center,
+				menu.BaseStyle.BorderForeground(selected).Render(m.menu.View()),
+				inbox.BaseStyle.BorderForeground(noSelected).Render(m.inbox.View()),
+			)
+		}
+
+		return lipgloss.JoinHorizontal(
 			lipgloss.Center,
-			selectedStyle.Render(menuRender),
-			noSelectedStyle.Render(inboxRender),
-		)
-	} else {
-		sm += lipgloss.JoinHorizontal(
-			lipgloss.Center,
-			noSelectedStyle.Render(menuRender),
-			selectedStyle.Render(inboxRender),
+			menu.BaseStyle.BorderForeground(noSelected).Render(m.menu.View()),
+			inbox.BaseStyle.BorderForeground(selected).Render(m.inbox.View()),
 		)
 	}
-	sm += helpStyle.Render("\ntab: focus next • q: exit\n")
 
-	return sm
+	s += view(m.state == menuView) + helpStyle.Render("\ntab: focus next • q: exit\n")
+
+	return s
 }
 
 func InitialModel() tea.Model {

@@ -4,7 +4,15 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
+
+var BaseStyle = lipgloss.NewStyle().
+	MarginTop(3).
+	MarginLeft(20).
+	Width(45).
+	Align(lipgloss.Center, lipgloss.Center).
+	BorderStyle(lipgloss.RoundedBorder())
 
 type MenuModel struct {
 	Header   string
@@ -18,18 +26,16 @@ func (m MenuModel) Init() tea.Cmd { return nil }
 func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "up", "k":
+		switch msg.Type {
+		case tea.KeyUp:
 			if m.Cursor > 0 {
 				m.Cursor--
 			}
-		case "down", "j":
+		case tea.KeyDown:
 			if m.Cursor < len(m.Choices)-1 {
 				m.Cursor++
 			}
-		case "enter", " ":
+		case tea.KeyEnter:
 			_, ok := m.Selected[m.Cursor]
 			if ok {
 				delete(m.Selected, m.Cursor)

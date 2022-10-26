@@ -6,9 +6,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var baseStyle = lipgloss.NewStyle().
+var BaseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.RoundedBorder()).
-	BorderForeground(lipgloss.Color("240"))
+	MarginTop(3).
+	MarginLeft(20).
+	MaxHeight(40).
+	MaxWidth(120).
+	Align(lipgloss.Center, lipgloss.Center)
 
 type InboxModel struct {
 	Table table.Model
@@ -27,8 +31,6 @@ func (m InboxModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.Table.Focus()
 			}
-		case "q", "ctrl+c":
-			return m, tea.Quit
 		case "enter":
 			return m, tea.Batch(
 				tea.Printf("Let's go to %s!", m.Table.SelectedRow()[1]),
@@ -40,5 +42,5 @@ func (m InboxModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m InboxModel) View() string {
-	return baseStyle.Render(m.Table.View()) + "\n"
+	return m.Table.View() + "\n"
 }
