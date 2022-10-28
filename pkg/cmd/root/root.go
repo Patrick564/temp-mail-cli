@@ -3,7 +3,7 @@ package root
 import (
 	"github.com/Patrick564/temp-mail-cli/pkg/cmd/inbox"
 	"github.com/Patrick564/temp-mail-cli/pkg/cmd/menu"
-	"github.com/charmbracelet/bubbles/table"
+	"github.com/Patrick564/temp-mail-cli/pkg/cmdutil"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -26,10 +26,32 @@ type model struct {
 	state sessionState
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func LoadEmail() tea.Msg {
+	params, err := cmdutil.GenerateRandomEmail()
+	if err != nil {
+		panic(1)
+	}
+
+	return params
+}
+
+// Try to change init func to menu package
+func (m model) Init() tea.Cmd { return LoadEmail }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
+	// case cmdutil.EmailValues:
+	// 	switch m.state {
+	// 	case menuView:
+	// 		m.menu, cmd = m.menu.Update(msg)
+	// 		cmds = append(cmds, cmd)
+	// 	default:
+	// 		m.inbox, cmd = m.inbox.Update(msg)
+	// 		cmds = append(cmds, cmd)
+	// 	}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -44,13 +66,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.state {
 		case menuView:
-			m.menu, _ = m.menu.Update(msg)
+			m.menu, cmd = m.menu.Update(msg)
+			cmds = append(cmds, cmd)
 		default:
-			m.inbox, _ = m.inbox.Update(msg)
+			m.inbox, cmd = m.inbox.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	default:
+		switch m.state {
+		case menuView:
+			m.menu, cmd = m.menu.Update(msg)
+			cmds = append(cmds, cmd)
+		default:
+			m.inbox, cmd = m.inbox.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	}
 
-	return m, nil
+	return m, tea.Batch(cmds...)
 }
 
 func (m model) View() string {
@@ -81,48 +114,10 @@ func (m model) View() string {
 }
 
 func InitialModel() tea.Model {
-	columns := []table.Column{
-		{Title: "Sender", Width: 35},
-		{Title: "Subject", Width: 30},
-		{Title: "Open", Width: 8},
-	}
-	rows := []table.Row{
-		{"Cosme Fulanito | cosme@gmail.com", "Good nigth", "▶"},
-		{"Atlassian Money | atlassian@contact.com", "Register at Atlassian", "▶"},
-		{"Octocat Register | register@github.com", "Hello from GitHub", "->"},
-		{"JetBrains Comercial | comercial@jetbrains.com", "JetBrains Fleet!", "->"},
-		{"JetBrains Register | register@jetbrains.com", "Save 30% at JetBrains products", "->"},
-		{"Spammy Spammer | veryspammer1998@spammy.com", "Just a spam an very large email...", "->"},
-		{"Birds Food Seller | food@birds.com", "Buy some birds food!", "->"},
-	}
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(15),
-	)
-
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
 	m := model{state: menuView}
-	m.menu = menu.MenuModel{
-		Header:   "nojog41234@abudat.com",
-		Choices:  []string{"Get 10 min. more", "Refresh inbox   ", "New temp. email  "},
-		Selected: make(map[int]struct{}),
-	}
-	m.inbox = inbox.InboxModel{
-		Table: t,
-	}
+
+	m.menu = menu.New()
+	m.inbox = inbox.New()
 
 	return m
 }

@@ -3,6 +3,7 @@ package menu
 import (
 	"fmt"
 
+	"github.com/Patrick564/temp-mail-cli/pkg/cmdutil"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -14,17 +15,20 @@ var BaseStyle = lipgloss.NewStyle().
 	Align(lipgloss.Center, lipgloss.Center).
 	BorderStyle(lipgloss.RoundedBorder())
 
-type MenuModel struct {
-	Header   string
+// TODO: Better name for struct to contain EmailValues
+type model struct {
+	Content  cmdutil.EmailValues
 	Choices  []string
 	Cursor   int
 	Selected map[int]struct{}
 }
 
-func (m MenuModel) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd { return nil }
 
-func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case cmdutil.EmailValues:
+		m.Content = msg
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyUp:
@@ -48,8 +52,8 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m MenuModel) View() string {
-	s := fmt.Sprintf("Email: %s\n\n", m.Header)
+func (m model) View() string {
+	s := fmt.Sprintf("Email: %s\n\n", m.Content.Email)
 
 	for i, choice := range m.Choices {
 		cursor := " "
@@ -61,4 +65,15 @@ func (m MenuModel) View() string {
 	}
 
 	return s
+}
+
+func New() model {
+	return model{
+		Choices: []string{
+			"Get 10 min. more",
+			"Refresh inbox   ",
+			"New temp. email  ",
+		},
+		Selected: make(map[int]struct{}),
+	}
 }

@@ -7,9 +7,9 @@ import (
 	"os"
 )
 
-type domains []string
+type Domains []string
 
-func GetDomainsList() (domains, error) {
+func GetDomainsList() (Domains, error) {
 	req, err := http.NewRequest("GET", os.Getenv("DOMAINS_LIST_URL"), nil)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func GetDomainsList() (domains, error) {
 		return nil, err
 	}
 
-	var d domains
+	var d Domains
 
 	err = json.Unmarshal(body, &d)
 	if err != nil {

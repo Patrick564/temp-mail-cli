@@ -16,7 +16,9 @@ type emails struct {
 	Timestamp float64 `json:"mail_timestamp"`
 }
 
-func GetEmails(emailHash string) ([]emails, error) {
+type EmailsList []emails
+
+func GetEmails(emailHash string) (EmailsList, error) {
 	url := fmt.Sprintf("%s/%s/", os.Getenv("GET_EMAILS_URL"), emailHash)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -38,7 +40,7 @@ func GetEmails(emailHash string) ([]emails, error) {
 		return nil, err
 	}
 
-	var e []emails
+	var e EmailsList
 
 	err = json.Unmarshal(body, &e)
 	if err != nil {
