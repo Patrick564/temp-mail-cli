@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-type emails struct {
+type email struct {
 	Id        string  `json:"mail_id"`
 	From      string  `json:"mail_from"`
 	Subject   string  `json:"mail_subject"`
@@ -16,9 +16,9 @@ type emails struct {
 	Timestamp float64 `json:"mail_timestamp"`
 }
 
-type EmailsList []emails
+type Emails []email
 
-func GetEmails(emailHash string) (EmailsList, error) {
+func GetEmails(emailHash string) (Emails, error) {
 	url := fmt.Sprintf("%s/%s/", os.Getenv("GET_EMAILS_URL"), emailHash)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -40,7 +40,7 @@ func GetEmails(emailHash string) (EmailsList, error) {
 		return nil, err
 	}
 
-	var e EmailsList
+	var e Emails
 
 	err = json.Unmarshal(body, &e)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type EmailValues struct {
+type RandomEmail struct {
 	Email string
 	Hash  string
 }
@@ -23,6 +23,7 @@ func randomId() string {
 	return strings.Split(rawId.String(), "-")[0]
 }
 
+// Retrive the domain list and pick one random.
 func randomDomain() (string, error) {
 	dl, err := api.GetDomainsList()
 	if err != nil {
@@ -31,16 +32,16 @@ func randomDomain() (string, error) {
 	return dl[rand.Intn(len(dl))], nil
 }
 
-func GenerateRandomEmail() (EmailValues, error) {
+func GenerateRandomEmail() (*RandomEmail, error) {
 	id := randomId()
 	domain, err := randomDomain()
 	if err != nil {
-		return EmailValues{}, err
+		return nil, err
 	}
 
 	email := fmt.Sprintf("%s%s", id, domain)
 	hasher := md5.Sum([]byte(email))
 	emailHash := hex.EncodeToString(hasher[:])
 
-	return EmailValues{email, emailHash}, nil
+	return &RandomEmail{email, emailHash}, nil
 }

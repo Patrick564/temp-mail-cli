@@ -17,18 +17,18 @@ var BaseStyle = lipgloss.NewStyle().
 
 // TODO: Better name for struct to contain EmailValues
 type model struct {
-	Content  cmdutil.EmailValues
+	Email    string
 	Choices  []string
 	Cursor   int
 	Selected map[int]struct{}
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd { return cmdutil.LoadEmail }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case cmdutil.EmailValues:
-		m.Content = msg
+	case cmdutil.RandomEmail:
+		m.Email = msg.Email
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyUp:
@@ -53,7 +53,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := fmt.Sprintf("Email: %s\n\n", m.Content.Email)
+	s := fmt.Sprintf("Email: %s\n\n", m.Email)
 
 	for i, choice := range m.Choices {
 		cursor := " "

@@ -3,7 +3,6 @@ package root
 import (
 	"github.com/Patrick564/temp-mail-cli/pkg/cmd/inbox"
 	"github.com/Patrick564/temp-mail-cli/pkg/cmd/menu"
-	"github.com/Patrick564/temp-mail-cli/pkg/cmdutil"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -26,32 +25,15 @@ type model struct {
 	state sessionState
 }
 
-func LoadEmail() tea.Msg {
-	params, err := cmdutil.GenerateRandomEmail()
-	if err != nil {
-		panic(1)
-	}
-
-	return params
+func (m model) Init() tea.Cmd {
+	return tea.Batch(m.menu.Init(), m.inbox.Init())
 }
-
-// Try to change init func to menu package
-func (m model) Init() tea.Cmd { return LoadEmail }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	// case cmdutil.EmailValues:
-	// 	switch m.state {
-	// 	case menuView:
-	// 		m.menu, cmd = m.menu.Update(msg)
-	// 		cmds = append(cmds, cmd)
-	// 	default:
-	// 		m.inbox, cmd = m.inbox.Update(msg)
-	// 		cmds = append(cmds, cmd)
-	// 	}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
