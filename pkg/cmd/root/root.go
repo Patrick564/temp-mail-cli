@@ -3,6 +3,7 @@ package root
 import (
 	"github.com/Patrick564/temp-mail-cli/pkg/cmd/inbox"
 	"github.com/Patrick564/temp-mail-cli/pkg/cmd/menu"
+	"github.com/Patrick564/temp-mail-cli/pkg/cmdutil"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -26,7 +27,11 @@ type model struct {
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(m.menu.Init(), m.inbox.Init())
+	return tea.Batch(
+		m.menu.Init(),
+		m.inbox.Init(),
+		cmdutil.LoadEmail,
+	)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -34,6 +39,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case cmdutil.RandomEmail:
+		m.menu, _ = m.menu.Update(msg)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":

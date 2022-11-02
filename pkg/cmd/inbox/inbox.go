@@ -18,7 +18,9 @@ type model struct {
 	Table table.Model
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd {
+	return nil
+}
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
@@ -51,15 +53,7 @@ func New() model {
 		{Title: "Subject", Width: 30},
 		{Title: "Open", Width: 8},
 	}
-	rows := []table.Row{
-		{"Cosme Fulanito | cosme@gmail.com", "Good nigth", "▶"},
-		{"Atlassian Money | atlassian@contact.com", "Register at Atlassian", "▶"},
-		{"Octocat Register | register@github.com", "Hello from GitHub", "->"},
-		{"JetBrains Comercial | comercial@jetbrains.com", "JetBrains Fleet!", "->"},
-		{"JetBrains Register | register@jetbrains.com", "Save 30% at JetBrains products", "->"},
-		{"Spammy Spammer | veryspammer1998@spammy.com", "Just a spam an very large email...", "->"},
-		{"Birds Food Seller | food@birds.com", "Buy some birds food!", "->"},
-	}
+	rows := []table.Row{{"Cosme Fulanito | cosme@gmail.com", "Good nigth", "▶"}}
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),

@@ -15,20 +15,23 @@ var BaseStyle = lipgloss.NewStyle().
 	Align(lipgloss.Center, lipgloss.Center).
 	BorderStyle(lipgloss.RoundedBorder())
 
-// TODO: Better name for struct to contain EmailValues
 type model struct {
 	Email    string
+	Hash     string
 	Choices  []string
 	Cursor   int
 	Selected map[int]struct{}
 }
 
-func (m model) Init() tea.Cmd { return cmdutil.LoadEmail }
+func (m model) Init() tea.Cmd {
+	return nil
+}
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case cmdutil.RandomEmail:
 		m.Email = msg.Email
+		m.Hash = msg.Hash
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyUp:
@@ -40,8 +43,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Cursor++
 			}
 		case tea.KeyEnter:
-			_, ok := m.Selected[m.Cursor]
-			if ok {
+			if _, ok := m.Selected[m.Cursor]; ok {
 				delete(m.Selected, m.Cursor)
 			} else {
 				m.Selected[m.Cursor] = struct{}{}

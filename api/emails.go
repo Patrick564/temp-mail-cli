@@ -2,24 +2,25 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 )
 
-type email struct {
-	Id        string  `json:"mail_id"`
-	From      string  `json:"mail_from"`
-	Subject   string  `json:"mail_subject"`
-	Text      string  `json:"mail_text"`
-	Timestamp float64 `json:"mail_timestamp"`
+var ErrEmptyInbox = errors.New("empty inbox")
+
+type EmailContent []struct {
+	MailID        string  `json:"mail_id"`
+	MailFrom      string  `json:"mail_from"`
+	MailSubject   string  `json:"mail_subject"`
+	MailText      string  `json:"mail_text"`
+	MailTimestamp float64 `json:"mail_timestamp"`
 }
 
-type Emails []email
-
-func GetEmails(emailHash string) (Emails, error) {
-	url := fmt.Sprintf("%s/%s/", os.Getenv("GET_EMAILS_URL"), emailHash)
+func GetEmails(emailHash string) (EmailContent, error) {
+	url := fmt.Sprintf("%s%s/", os.Getenv("GET_EMAILS_URL"), emailHash)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -40,10 +41,14 @@ func GetEmails(emailHash string) (Emails, error) {
 		return nil, err
 	}
 
-	var e Emails
+	var e EmailContent
 
 	err = json.Unmarshal(body, &e)
 	if err != nil {
+		// This conditional is for a response struct like {"error": "no new messages"}
+		if string(body[0]) == "{" {
+			return nil, ErrEmptyInbox
+		}
 		return nil, err
 	}
 
