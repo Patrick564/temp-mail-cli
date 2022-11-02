@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 
+	"github.com/Patrick564/temp-mail-cli/api"
 	"github.com/Patrick564/temp-mail-cli/pkg/cmdutil"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,14 +12,17 @@ import (
 
 var (
 	titleStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderBottom(true).
+			BorderForeground(lipgloss.Color("#265C7E")).
 			Foreground(lipgloss.Color("#45b245")).
 			MarginTop(3).
-			MarginLeft(20)
+			MarginLeft(6)
 	baseStyle = lipgloss.NewStyle().
 			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("#265C7E")).
-			MarginTop(2).
-			MarginLeft(20).
+			MarginTop(1).
+			MarginLeft(5).
 			Padding(1, 2).
 			MaxHeight(40).
 			MaxWidth(120).
@@ -38,13 +42,15 @@ var (
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#626262")).
 			MarginTop(2).
-			MarginLeft(21)
+			MarginLeft(5).
+			PaddingLeft(1)
 )
 
 type model struct {
-	Table       table.Model
 	EmailParams cmdutil.RandomEmail
-	EmailList   [][]string
+	Inbox       api.EmailContent
+	Rows        []table.Row
+	Table       table.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -67,14 +73,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Table.Focus()
 			}
 		case "r":
-			rows, err := cmdutil.LoadEmailsList(m.EmailParams.Hash)
+			list, err := cmdutil.LoadEmailsList(m.EmailParams.Hash)
 			if err != nil {
 				return m, tea.Quit
 			}
-			m.Table.SetRows(rows)
+
+			m.Inbox = list.Content
+			m.Table.SetRows(list.Rows)
 		case "enter":
+			if len(m.Inbox) == 0 {
+				break
+			}
 			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.Table.SelectedRow()[1]),
+				tea.Printf("Let's go to %d!", m.Inbox[m.Table.Cursor()]),
 			)
 		case "q":
 			return m, tea.Quit
@@ -87,21 +98,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := titleStyle.Render(fmt.Sprintf("Email: %s\n", m.EmailParams.Email))
-	s += baseStyle.Render(m.Table.View())
-	s += helpStyle.Render("enter: Open email • n: New email • r: Refresh inbox • q: quit\n")
+	s := titleStyle.Render(fmt.Sprintf("Email: %s", m.EmailParams.Email))
+	s += baseStyle.Render(m.Table.View()) + "saludo"
+	s += helpStyle.Render("enter: Open mail • n: New temp. email • r: Refresh inbox • q: quit\n")
 
 	return s
 }
 
 func InitialModel() tea.Model {
 	columns := []table.Column{
+		{Title: "#", Width: 3},
 		{Title: "Sender", Width: 35},
 		{Title: "Subject", Width: 30},
 		{Title: "Open", Width: 8},
 	}
 	rows := []table.Row{
-		{"-", "-", "-"},
+		{"0", "-", "-", "-"},
+		{"0", "-", "-", "-"},
 	}
 
 	newTable := table.New(
