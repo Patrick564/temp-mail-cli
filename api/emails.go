@@ -9,9 +9,9 @@ import (
 	"os"
 )
 
-var ErrEmptyInbox = errors.New("empty inbox")
+var ErrEmptyEmails = errors.New("empty inbox")
 
-type EmailContent []struct {
+type EmailContent struct {
 	MailID        string  `json:"mail_id"`
 	MailFrom      string  `json:"mail_from"`
 	MailSubject   string  `json:"mail_subject"`
@@ -19,7 +19,9 @@ type EmailContent []struct {
 	MailTimestamp float64 `json:"mail_timestamp"`
 }
 
-func GetEmails(emailHash string) (EmailContent, error) {
+type Emails []EmailContent
+
+func GetEmails(emailHash string) (Emails, error) {
 	url := fmt.Sprintf("%s%s/", os.Getenv("GET_EMAILS_URL"), emailHash)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -41,13 +43,13 @@ func GetEmails(emailHash string) (EmailContent, error) {
 		return nil, err
 	}
 
-	var e EmailContent
+	var e Emails
 
 	err = json.Unmarshal(body, &e)
 	if err != nil {
 		// This conditional is for a response struct like {"error": "no new messages"}
 		if string(body[0]) == "{" {
-			return nil, ErrEmptyInbox
+			return nil, ErrEmptyEmails
 		}
 		return nil, err
 	}

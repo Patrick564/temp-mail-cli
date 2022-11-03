@@ -9,7 +9,7 @@ import (
 
 type Domains []string
 
-func GetDomainsList() (Domains, error) {
+func GetDomains() (Domains, error) {
 	req, err := http.NewRequest("GET", os.Getenv("DOMAINS_LIST_URL"), nil)
 	if err != nil {
 		return nil, err

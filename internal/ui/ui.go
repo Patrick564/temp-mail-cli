@@ -43,14 +43,16 @@ var (
 			Foreground(lipgloss.Color("#626262")).
 			MarginTop(2).
 			MarginLeft(5).
+			MarginBottom(2).
 			PaddingLeft(1)
 )
 
 type model struct {
-	EmailParams cmdutil.RandomEmail
-	Inbox       api.EmailContent
-	Rows        []table.Row
-	Table       table.Model
+	User         cmdutil.UserEmail
+	Inbox        api.Emails
+	SelectedMail api.EmailContent
+	Rows         []table.Row
+	Table        table.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -62,8 +64,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case cmdutil.RandomEmail:
-		m.EmailParams = msg
+	case cmdutil.UserEmail:
+		m.User = msg
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
@@ -72,21 +74,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.Table.Focus()
 			}
+		case "enter":
+			m.Inbox = api.Emails{{MailID: "a", MailFrom: "a", MailText: "a", MailSubject: "a", MailTimestamp: 12.3123}}
+			if len(m.Inbox) == 0 {
+				break
+			}
+
+			m.SelectedMail = m.Inbox[m.Table.Cursor()]
 		case "r":
-			list, err := cmdutil.LoadEmailsList(m.EmailParams.Hash)
+			list, err := cmdutil.LoadEmailsList(m.User.Hash)
 			if err != nil {
 				return m, tea.Quit
 			}
 
 			m.Inbox = list.Content
 			m.Table.SetRows(list.Rows)
-		case "enter":
-			if len(m.Inbox) == 0 {
-				break
-			}
-			return m, tea.Batch(
-				tea.Printf("Let's go to %d!", m.Inbox[m.Table.Cursor()]),
-			)
 		case "q":
 			return m, tea.Quit
 		}
@@ -98,14 +100,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := titleStyle.Render(fmt.Sprintf("Email: %s", m.EmailParams.Email))
-	s += baseStyle.Render(m.Table.View()) + "saludo"
+	s := titleStyle.Render(fmt.Sprintf("Email: %s", m.User.Email))
+	s += baseStyle.Render(m.Table.View()) + fmt.Sprintf("From :%s", m.SelectedMail.MailFrom)
 	s += helpStyle.Render("enter: Open mail • n: New temp. email • r: Refresh inbox • q: quit\n")
 
 	return s
 }
 
-func InitialModel() tea.Model {
+func New() tea.Model {
 	columns := []table.Column{
 		{Title: "#", Width: 3},
 		{Title: "Sender", Width: 35},
@@ -113,7 +115,6 @@ func InitialModel() tea.Model {
 		{Title: "Open", Width: 8},
 	}
 	rows := []table.Row{
-		{"0", "-", "-", "-"},
 		{"0", "-", "-", "-"},
 	}
 

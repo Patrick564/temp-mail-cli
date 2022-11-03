@@ -16,7 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	p := tea.NewProgram(ui.InitialModel())
+	p := tea.NewProgram(ui.New())
 	if err := p.Start(); err != nil {
 		fmt.Printf("Error in program exec.: %v", err)
 		os.Exit(1)

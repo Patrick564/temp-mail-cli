@@ -10,15 +10,16 @@ import (
 
 type InboxContent struct {
 	Rows    []table.Row
-	Content api.EmailContent
+	Content api.Emails
 }
 
 type errMsg struct{ err error }
 
 func (e errMsg) Error() string { return e.err.Error() }
 
+// loadEmailUser
 func LoadEmail() tea.Msg {
-	params, err := GenerateRandomEmail()
+	params, err := GenerateUserEmail()
 	if err != nil {
 		return errMsg{err}
 	}
@@ -26,10 +27,11 @@ func LoadEmail() tea.Msg {
 	return *params
 }
 
+// loadEmails
 func LoadEmailsList(hash string) (*InboxContent, error) {
 	emails, err := api.GetEmails(hash)
 	if err != nil {
-		if err == api.ErrEmptyInbox {
+		if err == api.ErrEmptyEmails {
 			return &InboxContent{}, nil
 		}
 		return nil, err
