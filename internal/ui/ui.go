@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Patrick564/temp-mail-cli/api"
 	"github.com/Patrick564/temp-mail-cli/internal/ui/styles"
 	"github.com/Patrick564/temp-mail-cli/pkg/user"
+	"github.com/Patrick564/temp-mail-cli/pkg/utils"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,8 +32,8 @@ type model struct {
 }
 
 func (m model) Init() tea.Cmd {
-	// return utils.InitNewUser,
-	return tea.Batch(m.Viewport.Init())
+	return tea.Batch(utils.InitNewUser, m.Viewport.Init())
+	// return m.Viewport.Init()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -53,11 +53,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Table.Focus()
 			}
 		case tea.KeyEnter:
-			m.User.Inbox = api.Emails{
-				{MailID: "a", MailFrom: "a", MailText: "a", MailSubject: "a", MailTimestamp: 12.3123},
-				{MailID: "b", MailFrom: "b", MailText: "a", MailSubject: "a", MailTimestamp: 12.3123},
-				{MailID: "c", MailFrom: "c", MailText: "a", MailSubject: "a", MailTimestamp: 12.3123},
-			}
 			if len(m.User.Inbox) == 0 {
 				break
 			}
@@ -99,17 +94,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	var b strings.Builder
 
-	b.WriteString(styles.TitleStyle.Render(fmt.Sprintf("Email: %s", m.User.Email)))
+	title := styles.TitleStyle.Render(fmt.Sprintf("Email: %s", m.User.Email))
+	tableFocused := lipgloss.JoinVertical(
+		lipgloss.Center,
+		title,
+		styles.TableFocusedStyle.Render(m.Table.View()),
+	)
+	tableNoFocused := lipgloss.JoinVertical(
+		lipgloss.Center,
+		title,
+		styles.TableUnFocusedStyle.Render(m.Table.View()),
+	)
+
 	if m.state == tableView {
 		b.WriteString(lipgloss.JoinHorizontal(
-			lipgloss.Top,
-			styles.TableFocusedStyle.Render(m.Table.View()),
+			lipgloss.Bottom,
+			tableFocused,
 			styles.ViewportUnFocusedStyle.Render(m.Viewport.View()),
 		))
 	} else {
 		b.WriteString(lipgloss.JoinHorizontal(
-			lipgloss.Top,
-			styles.TableUnFocusedStyle.Render(m.Table.View()),
+			lipgloss.Bottom,
+			tableNoFocused,
 			styles.ViewportFocusedStyle.Render(m.Viewport.View()),
 		))
 	}
@@ -125,17 +131,13 @@ func New() (tea.Model, error) {
 		{Title: "Subject", Width: 30},
 		{Title: "Open", Width: 8},
 	}
-	rows := []table.Row{
-		{"-", "-", "-"},
-		{"-", "-", "-"},
-		{"-", "-", "-"},
-	}
+	rows := []table.Row{}
 
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(7),
+		table.WithHeight(10),
 	)
 	t.SetStyles(table.Styles{
 		Header:   styles.TableHeaderStyle,

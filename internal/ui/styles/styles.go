@@ -5,7 +5,7 @@ import "github.com/charmbracelet/lipgloss"
 const (
 	HelpText = `
 enter: Open mail • n: New temp. email • r: Refresh inbox • q: quit
-🡱/🡳: Navigate • 🡰/🡲: Change tab
+🡱|🡳: Navigate • 🡰|🡲: Change tab
 `
 )
 
