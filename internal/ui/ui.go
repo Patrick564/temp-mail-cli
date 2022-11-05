@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Patrick564/temp-mail-cli/api"
 	"github.com/Patrick564/temp-mail-cli/internal/ui/styles"
@@ -31,7 +32,7 @@ type model struct {
 }
 
 func (m model) Init() tea.Cmd {
-	// return utils.InitNewUser
+	// return utils.InitNewUser,
 	return tea.Batch(m.Viewport.Init())
 }
 
@@ -42,6 +43,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case user.UserModel:
 		m.User = msg
+		m.Viewport.SetContent(m.User.RenderedMail)
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEscape:
@@ -95,11 +97,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := styles.TitleStyle.Render(fmt.Sprintf("Email: %s", m.User.Email))
-	s += lipgloss.JoinHorizontal(lipgloss.Top, styles.BaseStyle.Render(m.Table.View()), m.Viewport.View())
-	s += styles.HelpStyle.Render("enter: Open mail • n: New temp. email • r: Refresh inbox • q: quit\n")
+	var b strings.Builder
 
-	return s
+	b.WriteString(styles.TitleStyle.Render(fmt.Sprintf("Email: %s", m.User.Email)))
+	if m.state == tableView {
+		b.WriteString(lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			styles.TableFocusedStyle.Render(m.Table.View()),
+			styles.ViewportUnFocusedStyle.Render(m.Viewport.View()),
+		))
+	} else {
+		b.WriteString(lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			styles.TableUnFocusedStyle.Render(m.Table.View()),
+			styles.ViewportFocusedStyle.Render(m.Viewport.View()),
+		))
+	}
+	b.WriteString(styles.HelpStyle.Render(styles.HelpText))
+	b.WriteRune('\n')
+
+	return b.String()
 }
 
 func New() (tea.Model, error) {
@@ -121,13 +138,12 @@ func New() (tea.Model, error) {
 		table.WithHeight(7),
 	)
 	t.SetStyles(table.Styles{
-		Header:   styles.HeaderStyle,
-		Selected: styles.SelectedStyle,
-		Cell:     styles.CellStyle,
+		Header:   styles.TableHeaderStyle,
+		Selected: styles.TableCellSelectedStyle,
+		Cell:     styles.TableCellStyle,
 	})
 
 	vp := viewport.New(width, height)
-	vp.Style = styles.ViewportStyle
 
 	renderer, err := glamour.NewTermRenderer(
 		glamour.WithAutoStyle(),

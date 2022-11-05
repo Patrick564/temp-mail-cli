@@ -1,26 +1,31 @@
 package user
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
-	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/Patrick564/temp-mail-cli/api"
+	"github.com/Patrick564/temp-mail-cli/pkg/random"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/glamour"
-	"github.com/google/uuid"
 )
 
-var baseContent string = `
+var (
+	emtpyContent string = `
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                No mail open yet...
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+`
+	baseContent string = `
 ## Email: %s | Time: %s
 ---
 ## Subject: %s
 ---
 %s
 `
+)
 
 type UserModel struct {
 	Email        string
@@ -82,30 +87,10 @@ func (u *UserModel) RenderActiveMail(idx int, t *glamour.TermRenderer) error {
 	return nil
 }
 
-func randomID() string {
-	rawId := uuid.New()
-
-	return strings.Split(rawId.String(), "-")[0]
-}
-
-func randomDomain() (string, error) {
-	dl, err := api.GetDomains()
-	if err != nil {
-		return "", err
-	}
-	return dl[rand.Intn(len(dl))], nil
-}
-
 func New() (*UserModel, error) {
-	id := randomID()
-	domain, err := randomDomain()
+	email, hash, err := random.RandomUserEmail()
 	if err != nil {
 		return nil, err
 	}
-
-	email := fmt.Sprintf("%s%s", id, domain)
-	hasher := md5.Sum([]byte(email))
-	emailHash := hex.EncodeToString(hasher[:])
-
-	return &UserModel{Email: email, Hash: emailHash}, nil
+	return &UserModel{Email: email, Hash: hash, RenderedMail: emtpyContent}, nil
 }
