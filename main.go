@@ -16,7 +16,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	p := tea.NewProgram(ui.New())
+	n, err := ui.New()
+	if err != nil {
+		fmt.Printf("Error in program exec.: %v", err)
+		os.Exit(1)
+	}
+
+	p := tea.NewProgram(n, tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		fmt.Printf("Error in program exec.: %v", err)
 		os.Exit(1)
