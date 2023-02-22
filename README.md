@@ -9,8 +9,14 @@ Using the [RapidAPI Temp Mail](https://rapidapi.com/Privatix/api/temp-mail), and
 
 Create and '.env' file with same entries that example env and run:
 
-```go
+```bash
 go run .
+```
+
+And for build:
+
+```bash
+go build -o temp-mail
 ```
 
 ## Usage
